@@ -9,9 +9,9 @@ export const publicRoutes = ["/", "/error", "/access-denied"];
 export const authRoutes = [
   "/auth/login",
   "/auth/register",
-  "/auth/verificationf",
+  "/auth/verification",
   "/auth/forgot-password",
-  "/new-password",
+  "/auth/new-password",
 ];
 
 /**

@@ -48,7 +48,19 @@ export const LoginForm = () => {
 
     startTransition(() => {
       login(values, callbackUrl)
-        .then((data) => {})
+        .then((data) => {
+          if (data?.error) {
+            setError(data?.error);
+            form.reset();
+          }
+          if (data?.success) {
+            setSuccess(data?.success);
+            form.reset();
+          }
+          if (data?.twoFactor) {
+            setShowTwoFactor(true);
+          }
+        })
         .catch(() => setError("Something went wrong"));
     });
   };
@@ -92,7 +104,7 @@ export const LoginForm = () => {
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="bachtv@gmail.com"
+                          placeholder="bachtv150902@gmail.com"
                           type="email"
                           disabled={isPending}
                         />

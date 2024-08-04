@@ -1,5 +1,7 @@
+import { VerificationForm } from "@/components/auth";
+
 const VerificationPage = () => {
-  return <div>VerificationPage</div>;
+  return <VerificationForm />;
 };
 
 export default VerificationPage;

@@ -1,7 +1,19 @@
 "use server";
 
+import { AuthError } from "next-auth";
 import * as z from "zod";
+import { signIn } from "@/auth";
+import { TokenType } from "@prisma/client";
 import { LoginSchema } from "@/schema/auth";
+import { db } from "@/lib/database";
+import { sendTwoFactorTokenEmail, sendVerificationEmail } from "@/lib/mail";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
+import {
+  generateTwoFactorToken,
+  generateVerificationToken,
+  getTokenByMail,
+  getUserByEmail,
+} from "@/data";
 
 export const login = async (
   values: z.infer<typeof LoginSchema>,
@@ -11,4 +23,55 @@ export const login = async (
 
   if (!validatedFields.success) return { error: "Invalid fields!" };
   const { email, password, code } = validatedFields.data;
+  const user = await getUserByEmail(email);
+
+  if (!user || !user.email || !user.password)
+    return { error: "Tài khoản không tồn tại!" };
+  if (!user.emailVerified) {
+    const verificationToken = await generateVerificationToken(user.email);
+
+    await sendVerificationEmail(email, verificationToken.token);
+    return { success: "Confirmation email sent!" };
+  }
+
+  if (user.isTwoFactorEnabled && user.email) {
+    if (code) {
+      const twoFactorToken = await getTokenByMail(
+        user.email,
+        TokenType.TWO_FACTOR
+      );
+      if (!twoFactorToken || twoFactorToken.token !== code)
+        return { error: "Invalid code!" };
+
+      const hasExpired = new Date(twoFactorToken.expires) < new Date();
+      if (hasExpired) return { error: "Code expired!" };
+
+      await db.userToken.delete({
+        where: { id: twoFactorToken.id },
+      });
+    } else {
+      const twoFactorToken = await generateTwoFactorToken(user.email);
+      await sendTwoFactorTokenEmail(twoFactorToken.email, twoFactorToken.token);
+      return { twoFactor: true };
+    }
+  }
+
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { error: "Invalid credentials" };
+        default:
+          return { error: "Something went wrong!" };
+      }
+    }
+
+    throw error;
+  }
 };

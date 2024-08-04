@@ -1,1 +1,6 @@
 export * from './login'
+export * from './logout'
+export * from './register'
+export * from './verification'
+export * from './forgot-password'
+export * from './new-password'
