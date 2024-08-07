@@ -21,7 +21,7 @@ export const login = async (
 ) => {
   const validatedFields = LoginSchema.safeParse(values);
 
-  if (!validatedFields.success) return { error: "Invalid fields!" };
+  if (!validatedFields.success) return { error: "Vui lòng nhập đủ các trường bắt buộc!" };
   const { email, password, code } = validatedFields.data;
   const user = await getUserByEmail(email);
 
@@ -31,7 +31,7 @@ export const login = async (
     const verificationToken = await generateVerificationToken(user.email);
 
     await sendVerificationEmail(email, verificationToken.token);
-    return { success: "Confirmation email sent!" };
+    return { success: "Vui lòng kiểm tra email để xác thực tài khoản!" };
   }
 
   if (user.isTwoFactorEnabled && user.email) {
@@ -41,10 +41,10 @@ export const login = async (
         TokenType.TWO_FACTOR
       );
       if (!twoFactorToken || twoFactorToken.token !== code)
-        return { error: "Invalid code!" };
+        return { error: "Vui lòng nhập mã OTP!" };
 
       const hasExpired = new Date(twoFactorToken.expires) < new Date();
-      if (hasExpired) return { error: "Code expired!" };
+      if (hasExpired) return { error: "Mã OTP đã hết hạn!" };
 
       await db.userToken.delete({
         where: { id: twoFactorToken.id },
@@ -66,9 +66,9 @@ export const login = async (
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
-          return { error: "Invalid credentials" };
+          return { error: "Không tìm thấy thông tin!" };
         default:
-          return { error: "Something went wrong!" };
+          return { error: "Có lỗi xảy ra!" };
       }
     }
 

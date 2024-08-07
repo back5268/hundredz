@@ -1,154 +1,77 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { login } from "@/lib/actions";
-import { LoginSchema } from "@/schema/auth";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { FormError, FormSuccess } from "@/components/shared";
-import { AuthWrapper } from "@/components/auth";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import * as z from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { login } from '@/lib/actions';
+import { LoginSchema } from '@/schema/auth';
+import { Form } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { CustomInput, FormError, FormSuccess } from '@/components/shared';
+import { AuthWrapper } from '@/components/auth';
 
 export const LoginForm = () => {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl");
-  const urlError =
-    searchParams.get("error") === "OAuthAccountNotLinked"
-      ? "Email already in use difference provider"
-      : "";
+  const callbackUrl = searchParams.get('callbackUrl');
+  const urlError = searchParams.get('error') === 'OAuthAccountNotLinked' ? 'Email đã được sử dụng!' : '';
 
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
+  const [error, setError] = useState<string | undefined>('');
+  const [success, setSuccess] = useState<string | undefined>('');
   const [showTwoFactor, setShowTwoFactor] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      email: "",
-      password: "",
-    },
+      email: '',
+      password: ''
+    }
   });
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setError("");
-    setSuccess("");
-
+    setError('');
+    setSuccess('');
     startTransition(() => {
-      login(values, callbackUrl)
-        .then((data) => {
-          if (data?.error) {
-            setError(data?.error);
-            form.reset();
-          }
-          if (data?.success) {
-            setSuccess(data?.success);
-            form.reset();
-          }
-          if (data?.twoFactor) {
-            setShowTwoFactor(true);
-          }
-        })
-        .catch(() => setError("Something went wrong"));
+      login(values, callbackUrl).then((data) => {
+        if (data?.error) {
+          setError(data?.error);
+          form.reset();
+        }
+        if (data?.success) {
+          setSuccess(data?.success);
+          form.reset();
+        }
+        if (data?.twoFactor) {
+          setShowTwoFactor(true);
+        }
+      });
     });
   };
 
   return (
-    <AuthWrapper
-      headerLabel="Welcome back"
-      backButtonLabel="Don't have an account?"
-      backButtonHref="/auth/register"
-      showSocial
-    >
+    <AuthWrapper headerLabel="Chào mừng trở lại" backButtonLabel="Chưa có tài khoản, đăng ký?" backButtonHref="/auth/register" showSocial>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
             {showTwoFactor ? (
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Two Factor Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="123456"
-                        disabled={isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <CustomInput name="code" label="Mã xác thực (*)" control={form.control} placeholder="123456" disabled={isPending} />
             ) : (
               <>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="bachtv150902@gmail.com"
-                          type="email"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="******"
-                          type="password"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <Button
-                        size="sm"
-                        variant="link"
-                        asChild
-                        className="px-0 font-normal"
-                      >
-                        <Link href="/auth/forgot-password">
-                          Forgot password
-                        </Link>
-                      </Button>
-                    </FormItem>
-                  )}
-                />
+                <CustomInput name="email" label="Email (*)" type="email" control={form.control} placeholder="bachtv150902@gmail.com" disabled={isPending} />
+                <CustomInput name="password" label="Mật khẩu (*)" type="password" control={form.control} placeholder="******" disabled={isPending} />
+                <Button size="sm" variant="link" asChild className="px-0 font-normal">
+                  <Link href="/auth/forgot-password">Quên mật khẩu</Link>
+                </Button>
               </>
             )}
           </div>
           <FormSuccess message={success} />
           <FormError message={error || urlError} />
           <Button disabled={isPending} type="submit" className="w-full">
-            {showTwoFactor ? "Confirm" : "Login"}
+            {showTwoFactor ? 'Xác nhận' : 'Đăng nhập'}
           </Button>
         </form>
       </Form>

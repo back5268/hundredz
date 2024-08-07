@@ -80,3 +80,13 @@ body,
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .input-class {
+    @apply rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-500;
+  }
+
+  .label-form-class {
+    @apply rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-500;
+  }
+}

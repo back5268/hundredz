@@ -26,7 +26,7 @@ export const SideBar = ({ isShowSidebar }: SideBarProps) => {
       </div>
       <nav className="flex flex-col gap-y-3 text-base font-normal mt-4 px-4">
         {sidebarLinks?.map((item, index) => {
-          return <div>{item.label}</div>;
+          return <div key={index}>{item.label}</div>;
         })}
       </nav>
     </section>

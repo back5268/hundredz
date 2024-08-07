@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOutIcon } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { logout } from "@/lib/actions";
+import { signOut } from "next-auth/react";
 
 export const UserButton = () => {
   const user = useCurrentUser();
-  const onClick = () => logout();
+  const onClick = () => signOut();
 
   return (
     <DropdownMenu>

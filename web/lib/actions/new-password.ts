@@ -12,19 +12,19 @@ export const newPassword = async (
   token: string | null
 ) => {
   const validatedFields = NewPasswordSchema.safeParse(values);
-  if (!validatedFields.success) return { error: "Invalid fields!" };
-  if (!token) return { error: "Missing token!" };
+  if (!validatedFields.success) return { error: "Vui lòng nhập đủ các trường bắt buộc!" };
+  if (!token) return { error: "Không tìm thấy token!" };
 
   const { password } = validatedFields.data;
   const existingToken = await db.userToken.findFirst({
     where: { token, type: TokenType.FORGOT_PASSWORD },
   });
-  if (!existingToken) return { error: "Token does not exist!" };
+  if (!existingToken) return { error: "Mã token không tồn tại!" };
   const hasExpired = new Date(existingToken.expires) < new Date();
-  if (hasExpired) return { error: "Token has expired!" };
+  if (hasExpired) return { error: "Mã token đã hết hạn!" };
 
   const existingUser = await getUserByEmail(existingToken.email);
-  if (!existingUser) return { error: "Email does not exist!" };
+  if (!existingUser) return { error: "Không tìm thấy tài khoản!" };
 
   const hashedPassword = await bcrypt.hash(password, 10);
   await db.user.update({
@@ -35,5 +35,5 @@ export const newPassword = async (
     where: { id: existingToken.id },
   });
 
-  return { success: "Password reset success!" };
+  return { success: "Xác nhận mật khẩu mới thành công!" };
 };

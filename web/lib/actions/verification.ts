@@ -8,12 +8,12 @@ export const verification = async (token: string) => {
   const existingToken = await db.userToken.findFirst({
     where: { token, type: TokenType.VERIFY }
   })
-  if (!existingToken) return { error: "Token does not exist!" };
+  if (!existingToken) return { error: "Mã xác nhận không tồn tại!" };
   const hasExpired = new Date(existingToken.expires) < new Date();
-  if (hasExpired) return { error: "Token has expired!" };
+  if (hasExpired) return { error: "Mã xác nhận đã hết hạn!" };
 
   const user = await getUserByEmail(existingToken.email);
-  if (!user) return { error: "Email does not exist!" };
+  if (!user) return { error: "Không tìm thấy tài khoản!" };
 
   await db.user.update({
     where: { id: user.id },
@@ -27,5 +27,5 @@ export const verification = async (token: string) => {
     where: { id: existingToken.id },
   });
 
-  return { success: "Email verified!" }
+  return { success: "Xác nhận tài khoản thành công!" }
 };

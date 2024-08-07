@@ -10,12 +10,12 @@ import { generateVerificationToken, getUserByEmail } from "@/data";
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
 
-  if (!validatedFields.success) return { error: "Invalid fields!" };
+  if (!validatedFields.success) return { error: "Vui lòng nhập đủ các trường bắt buộc!" };
   const { email, password, name } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const exitingUser = await getUserByEmail(email);
-  if (exitingUser) return { error: "Email already in use!" };
+  if (exitingUser) return { error: `Email ${email} đã được sử dụng!` };
   await db.user.create({
     data: {
       name,
@@ -26,5 +26,5 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const verificationToken = await generateVerificationToken(email);
   await sendVerificationEmail(email, verificationToken.token);
-  return { success: "Confirmation email sent!" };
+  return { success: "Vui lòng kiểm tra email để xác thực tài khoản!" };
 };
